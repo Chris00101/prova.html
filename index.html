@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pokédex</title>
+  <link rel="stylesheet" href="pokedex.css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #f00;
+      font-family: sans-serif;
+    }
+  </style>
+</head>
+<body>
+  
+    <div style="text-align: center; margin: 20px;">
+      <input type="text" id="searchInput" placeholder="Digite o nome do Pokémon" style="padding: 8px; font-size: 16px;" />
+      <button onclick="searchPokemon()" style="padding: 8px 12px; font-size: 16px;">Buscar</button>
+    </div>
+  
+    <!-- CONTAINER FLEX -->
+    <div id="mainWrapper" style="display: flex; gap: 20px; padding: 0 20px;">
+  
+      <!-- IMAGEM DO POKÉMON À ESQUERDA -->
+      <div id="picture" style="display: flex; justify-content: center; align-items: center; background: white; padding: 10px; border: 2px solid #ccc; border-radius: 8px; min-width: 250px; min-height: 250px;">
+        <img id="pokemonImage" title="Click e altere imagem" height="170" />
+      </div>
+  
+      <!-- POKÉDEX -->
+      <div id="pokedex">
+        <div id="left">
+          <div id="logo"></div>
+          <div id="bg_curve1_left"></div>
+          <div id="bg_curve2_left"></div>
+          <div id="curve1_left">
+            <div id="buttonGlass"><div id="reflect"></div></div>
+            <div id="miniButtonGlass1"></div>
+            <div id="miniButtonGlass2"></div>
+            <div id="miniButtonGlass3"></div>
+          </div>
+          <div id="curve2_left">
+            <div id="junction"><div id="junction1"></div><div id="junction2"></div></div>
+          </div>
+          <div id="screen" style="overflow-y: auto; padding: 10px; background: white;">
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+              <!-- Pokémons serão inseridos dinamicamente aqui -->
+            </div>
+          </div>
+          <div id="topPicture"><div id="buttontopPicture1"></div><div id="buttontopPicture2"></div></div>
+          <!-- picture REMOVIDO daqui -->
+          <div id="buttonbottomPicture"></div>
+          <div id="speakers">
+            <div class="sp"></div><div class="sp"></div><div class="sp"></div><div class="sp"></div>
+          </div>
+          <div id="bigbluebutton"></div>
+          <div id="barbutton1"></div>
+          <div id="barbutton2"></div>
+          <div id="cross">
+            <div id="leftcross"><div id="leftT"></div></div>
+            <div id="topcross"><div id="upT"></div></div>
+            <div id="rightcross"><div id="rightT"></div></div>
+            <div id="midcross"><div id="midCircle"></div></div>
+            <div id="botcross"><div id="downT"></div></div>
+          </div>
+        </div>
+  
+        <div id="right">
+          <div id="stats">
+            <strong>Name:</strong> <span id="pokemonName"></span><br />
+            <strong>Type:</strong> <span id="pokemonTypes"></span><br />
+            <strong>Height:</strong> <span id="pokemonHeight"></span>m<br />
+            <strong>Weight:</strong> <span id="pokemonWeight"></span>kg<br />
+            <strong>Skill:</strong> <span id="pokemonSkills"></span>...
+          </div>
+          <div id="blueButtons1">
+            <div class="blueButton"></div>
+            <div class="blueButton"></div>
+            <div class="blueButton"></div>
+          </div>
+        </div>
+      </div>
+  
+    </div> <!-- fecha #mainWrapper -->
+  </body>
+  
+  <script>
+    const screenDiv = document.querySelector("#screen > div");
+    const pokemonName = document.getElementById("pokemonName");
+    const pokemonTypes = document.getElementById("pokemonTypes");
+    const pokemonHeight = document.getElementById("pokemonHeight");
+    const pokemonWeight = document.getElementById("pokemonWeight");
+    const pokemonSkills = document.getElementById("pokemonSkills");
+    const pokemonImage = document.getElementById("pokemonImage");
+
+    async function loadPokemon() {
+      for (let id = 1; id <= 10; id++) {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+        const data = await response.json();
+
+        const pokeDiv = document.createElement("div");
+        pokeDiv.style.textAlign = "center";
+        pokeDiv.style.cursor = "pointer";
+        pokeDiv.innerHTML = `
+          <img src="${data.sprites.front_default}" alt="${data.name}" />
+          <p>${capitalize(data.name)}</p>
+        `;
+        pokeDiv.onclick = () => showDetails(data);
+        screenDiv.appendChild(pokeDiv);
+      }
+    }
+
+    async function searchPokemon() {
+      const input = document.getElementById("searchInput");
+      const name = input.value.toLowerCase().trim();
+
+      if (!name) {
+        alert("Por favor, digite o nome de um Pokémon.");
+        return;
+      }
+
+      try {
+        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${name}`);
+        if (!response.ok) throw new Error("Pokémon não encontrado");
+        
+        const data = await response.json();
+        showDetails(data);
+        input.value = "";
+      } catch (error) {
+        alert("Pokémon não encontrado. Verifique o nome e tente novamente.");
+      }
+    }
+
+    function showDetails(pokemon) {
+      pokemonName.textContent = capitalize(pokemon.name);
+      pokemonTypes.textContent = pokemon.types.map(t => capitalize(t.type.name)).join(", ");
+      pokemonHeight.textContent = (pokemon.height / 10).toFixed(1); // metros
+      pokemonWeight.textContent = (pokemon.weight / 10).toFixed(1); // kg
+      pokemonSkills.textContent = pokemon.abilities.map(a => capitalize(a.ability.name)).join(", ");
+      pokemonImage.src = pokemon.sprites.other["official-artwork"].front_default || pokemon.sprites.front_default;
+    }
+
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    loadPokemon();
+  </script>
+</body>
+</html>
